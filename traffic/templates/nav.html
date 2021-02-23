@@ -92,7 +92,7 @@
                 <a href="#" class="ai-btn"><i class="fa fa-history"></i> AI <span class="fa fa-caret-down first"></span> </a>
                 <ul class="ai-show">
                     <li><a href="#">Forecasting</a></li>
-                    <li><a href="#">Fault Prediction</a></li>
+                    <li><a href="home">Fault Prediction</a></li>
                     <li><a href="#">Data Analysis</a></li>
                 </ul>
             </li>
@@ -108,41 +108,35 @@
     </div>
 
     <div class="dropbox">
-        <h1>Forecasting</h1>
+        <h1>Fault Prediction</h1>
         <form action="#">
 
             <div class="flex-container">
                 <div>
                     <label for="device" style="float:left">Select Device:</label><br>
-                    <select name="cars" id="cars" style="width: 250px;">
+                    <select name="imei" id="imei" style="width: 250px;">
             <option value="volvo">--Select Device--</option>
-            <option value="867322031102411">867322031102411</option>
-            <option value="opel">2</option>
-            <option value="audi">3</option>
+            {% for i in devices %}
+            <option value={{i.DeviceImei}}>{{i.location}}</option>
+            {% endfor %}
           </select>
                 </div>
                 <div>
 
                     <label for="package" style="float:left">Select Packet Type:</label><br>
-                    <select name="cars1" id="cars1" style="width: 250px;">
-            <option value="volvo">--Select Packet Type--</option>
-            <option value="current_voltage">current_voltage</option>
-            <option value="opel">2</option>
-            <option value="audi">3</option>
+                    <select name="packettype" id="packettype" style="width: 250px;">
+            <option value="">--Select Packet Type--</option>
           </select>
                 </div>
                 <div>
                     <label for="parameter" style="float:left">Select Parameter:</label><br>
-                    <select name="cars2" id="cars2" style="width: 250px;">
-            <option value="volvo">--Select Parameter--</option>
-            <option value="VL12">VL12</option>
-            <option value="VL23">VL23</option>
-            <option value="VL31">VL31</option>
+                    <select name="parameter" id="parameter" style="width: 250px;">
+            <option value="">--Select Parameter--</option>
           </select>
                 </div>
                 <div>
                     <br>
-                    <input type="submit" value="Submit" href="/home?imei={{cars}}&pack={{cars1}}&par={{cars2}}" style="float:left">
+                    <input type="submit" value="Submit" href="/home?imei={{imei}}&pack={{packettype}}&par={{parameter}}" style="float:left">
                 </div>
             </div>
 
@@ -164,6 +158,29 @@
             $(this).addClass("active").siblings().removeClass("active");
         });
     </script>
+    <script>
+        var subjectObject = {
+          "current_voltage": ["VL1","VL2","VL3","VL12", "VL23", "VL31"],
+          "overview": ["MOG_A"],
+          "powerfactor":["PFL1","PFL2","PFL3"]
+        }
+        window.onload = function() {
+          var topicSel = document.getElementById("packettype");
+          var chapterSel = document.getElementById("parameter");
+          for (var x in subjectObject) {
+            topicSel.options[topicSel.options.length] = new Option(x, x);
+          }
+          topicSel.onchange = function() {
+            //empty Chapters- and Topics- dropdowns
+            chapterSel.length = 1;
+            //display correct values
+            var z = subjectObject[topicSel.value];
+            for (var i = 0; i < z.length; i++) {
+              chapterSel.options[chapterSel.options.length] = new Option(z[i], z[i]);
+            }
+          }
+        }
+        </script>
 
 </body>
 

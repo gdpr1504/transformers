@@ -925,9 +925,11 @@ def fault_view(request):
                    'graph_div6': graph_div6, 'graph_div7': graph_div7, 'graph_div8': graph_div8,
                    'graph_div9': graph_div9, 'graph_div10': graph_div10, 'graph_div11': graph_div11})
 def file(request):
-    imei=request.GET.get('cars')
-    pack=request.GET.get('cars1')
-    aid=request.GET.get('cars2')
+    imei=request.GET.get('imei')
+    pack=request.GET.get('packettype')
+    aid=request.GET.get('parameter')
+    url="http://182.18.164.20/transformer_api/overview_locations"
+    response1=requests.get(url)
     if(imei!=None):
         url = "http://182.18.164.20/transformer_api/"+pack+"/"+imei
         user = "admin"
@@ -935,10 +937,22 @@ def file(request):
         auth_values = (user, passwd)
         response = requests.get(url, auth=auth_values)
         df = pd.DataFrame.from_dict(response.json(), orient='columns')
-        if(aid in ["VL12","VL23","VL31"]):
-            df_fault_vl12=df.loc[(df[aid]<390)|(df[aid]>450)]
-            df_fault_vl12.head(5)
-            plot_data = [
+        if(pack=="current_voltage"):
+            if(aid in ["VL12","VL23","VL31"]):
+                df_fault_vl12=df.loc[(df[aid]<390)|(df[aid]>450)]
+                df_fault_vl12.head(5)
+            elif(aid in ['VL1','VL2','VL3']):
+                df_fault_vl12=df.loc[(df[aid]==0)]
+                df_fault_vl12.head(5)
+        elif(pack=="overview"):
+            if(aid=="MOG_A"):
+                df_fault_vl12=df.loc[df['MOG_A']==0]
+        elif(pack=="powerfactor"):
+            if(aid in ["PFL1","PFL2","PFL3"]):
+                df_fault_vl12=df.loc[(df[aid]<0.7)]
+                df_fault_vl12.head()
+
+        plot_data = [
                 go.Scatter(
                     x=df['DeviceTimeStamp'],
                     y=df[aid],
@@ -955,13 +969,14 @@ def file(request):
                         opacity= 0.8
                     )
                     )
-                ]
-            plot_layout = go.Layout(
-                        title=', Device Id: '+imei+', fault occured '+str(len(df_fault_vl12))+' times',
+        ]
+
+        plot_layout = go.Layout(
+                        title=aid+","+pack+', Device Id: '+imei+', fault occured '+str(len(df_fault_vl12))+' times',
                         xaxis_title='Time',
                         yaxis_title=aid,
                         plot_bgcolor='rgba(0,0,0,0)'
-            )
+        )
         fig = go.Figure(data=plot_data, layout=plot_layout)
         #fig.update_layout(xaxis=dict(rangeslider=dict(visible=True), type="linear"))
 
@@ -969,6 +984,6 @@ def file(request):
                         
 
 
-        return render(request,'nav.html',{'graph_div1':graph_d })
+        return render(request,'nav.html',{'graph_div1':graph_d,'devices':response1.json() })
     else:
-        return render(request,'nav.html')
+        return render(request,'nav.html',{'devices':response1.json()})
